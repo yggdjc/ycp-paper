@@ -1,5 +1,7 @@
 # Assemble, Don't Accumulate: Deterministic Context Management for Long-Horizon LLM Agents
 
+English | [中文](README_zh.md)
+
 **Author:** Ting-Chieh Chu, YGG Team
 
 ## Abstract
@@ -41,7 +43,8 @@ Both accumulate baselines begin failing at turn 14 -- the exact point where the 
 ## Repository Structure
 
 ```
-README.md          # This file
+README.md          # English version
+README_zh.md       # 中文版本
 paper-spec.md      # Full paper design specification
 LICENSE            # CC BY 4.0
 ```
