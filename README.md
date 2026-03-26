@@ -28,23 +28,29 @@ Paper in preparation. Early experimental results on S1 (instruction adherence, 1
 
 | Model | AN (accumulate) | OURS (assembly) | Delta | First Fail (AN → OURS) |
 |-------|-----------------|-----------------|-------|------------------------|
-| qwen3-4b (3.6B dense, n=3) | 73.2 ± 6.6% | 99.1 ± 0.8% | +25.9% | turn 14-22 → turn 60-never |
-| DeepSeek V3.2 (671B MoE) | 70.8% | 92.8% | +22.0% | turn 14 → turn 41 |
+| qwen3-4b (3.6B dense, n=5) | 78.1 ± 8.4% | 99.1 ± 0.6% | +21.0% | turn 22-30 → turn 12-never |
+| DeepSeek V3.2 (671B MoE, n=3) | 64.9 ± 5.8% | 92.5 ± 7.6% | +27.6% | turn 14-28 → turn 24-never |
 
-qwen3-4b multi-run details (3 runs):
+qwen3-4b per-run details (5 runs):
+
+|          | AN r0  | AN r1  | AN r2  | AN r3  | AN r4  | OURS r0 | OURS r1  | OURS r2 | OURS r3 | OURS r4 |
+|----------|--------|--------|--------|--------|--------|---------|----------|---------|---------|---------|
+| Overall  | 70.4%  | 80.8%  | 68.4%  | 88.0%  | 82.8%  | 98.4%   | 100.0%   | 98.8%   | 99.2%   | 99.2%   |
+| R4       | 26%    | 100%   | 29%    | 100%   | 57%    | 100%    | 100%     | 100%    | 99%     | 100%    |
+| 1st fail | t26    | t22    | t22    | t30    | t26    | t60     | never    | t61     | t12     | t28     |
+
+DeepSeek V3.2 per-run details (3 runs):
 
 |          | AN r0  | AN r1  | AN r2  | OURS r0 | OURS r1  | OURS r2 |
 |----------|--------|--------|--------|---------|----------|---------|
-| Overall  | 70.4%  | 80.8%  | 68.4%  | 98.4%   | 100.0%   | 98.8%   |
-| R4       | 64%    | 100%   | 29%    | 100%    | 100%     | 100%    |
-| R5       | 64%    | 100%   | 29%    | 100%    | 100%     | 100%    |
-| 1st fail | t14    | t22    | t22    | t60     | never    | t61     |
+| Overall  | 70.8%  | 59.2%  | 64.8%  | 92.8%   | 100.0%   | 84.8%   |
+| R4       | 64%    | 29%    | 26%    | 91%     | 100%     | 81%     |
+| 1st fail | t14    | t28    | t24    | t41     | never    | t24     |
 
-AN shows high variance (68-81%) with R4/R5 adherence collapsing to 29% in the worst run. OURS is stable (98-100%) with R4/R5 at 100% across all runs. Assembly's first failure occurs 38-87 turns later than accumulate's, or not at all.
+AN shows high variance across both models (qwen3-4b: 68-88%, DeepSeek: 59-71%) with R4 adherence collapsing to 26-29% in worst runs. OURS is consistently higher (qwen3-4b: 98-100%, DeepSeek: 85-100%) with R4 ≥ 81% across all runs.
 
 **In progress:**
 - gpt-5.4-mini AN + OURS (closed-source model validation)
-- DeepSeek V3.2 multi-run variance confirmation
 - AC (LLM compaction), AX (LLMLingua compression), RS (RAG retrieval) baselines
 - S2 (canary survival), S3 (decision consistency), S4 (task isolation), S5 (deep backtracking)
 - Attention share analysis (direct extraction on qwen3-4b, logprobs on gpt-5.4-mini)
