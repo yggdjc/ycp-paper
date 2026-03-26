@@ -6,25 +6,47 @@
 
 Long-horizon LLM agents treat context as mutable state -- content accumulates, instructions lose attention share monotonically, and behavioral guarantees erode. All existing approaches (compaction, paging, retrieval, compression) share a common computational model: context is state that grows and must be reduced.
 
-We propose a different computational model: context is not stored; it is computed. Working Memory is a deterministic function of structured session memory -- WM = f(SessionMemory, Config). Each LLM call begins with empty working memory; a deterministic assembler renders context from structured session memory using LLM-declared metadata.
+We propose a different computational model: context is not stored; it is computed. Working Memory is a deterministic function of structured session memory -- WM = f(SessionMemory, Config). Each LLM call begins with empty working memory; a deterministic assembler renders context from structured session memory using LLM-declared metadata. This is not an optimization of accumulate; it is a replacement.
 
-We prove accumulate attention share decays as O(1/n) while assembly maintains a constant floor Omega(|C|/B), and connect this to information capacity collapse. We implement this in ycp (ygg-context-proxy), an open-source context proxy that interposes between agent and LLM.
+We prove accumulate attention share decays as O(1/n) while assembly maintains a constant floor Omega(|C|/B), and connect this to information capacity collapse. Any system that maintains context as mutable state belongs to the accumulate class and inherits this decay. Any system that constructs context as a bounded function belongs to the assembly class and admits constant attention guarantees. No hybrid escapes this classification.
 
-On synthetic 100-turn scenarios and SWE-bench, across GPT-5 and qwen3-4b, assembly maintains instruction adherence where accumulate-compact and RAG-select degrade; achieves 0% unauthorized token-level cross-task leakage; and matches RAG on downstream metrics at lower per-call cost.
+We implement this in ycp (ygg-context-proxy), an open-source context proxy that interposes between agent and LLM.
 
 ## Core Contributions
 
-1. **Attention dilution analysis.** Formal proof that accumulate attention decays O(1/n) (Theorem 1) while assembly maintains constant floor (Theorem 2), with architecture-aware bounds under RoPE and ALiBi.
+1. **Attention dilution analysis.** Formal proof that accumulate attention decays O(1/n) (Theorem 1) while assembly maintains constant floor (Theorem 2), with architecture-aware bounds under RoPE and ALiBi. This is a classification result: it partitions all context management strategies into two formally distinct categories.
+
 2. **The assembly principle and its mechanisms.** Four deterministic mechanisms: constitution partitioning, budget-driven episode selection, decision pinning via LLM-declared metadata (mlock pattern), and structural task isolation.
-3. **Empirical validation.** 5 baselines (AN/AC/AX/RS/OURS), 2 models (GPT-5, qwen3-4b), synthetic scenarios + SWE-bench-lite with full statistical rigor.
+
+3. **Empirical validation.** 5 baselines (AN/AC/AX/RS/OURS), multiple models spanning 3.6B dense to 671B MoE, synthetic 100-turn scenarios + SWE-bench-lite with full statistical rigor.
+
+## Status
+
+Paper in preparation. Early experimental results on S1 (instruction adherence, 100 turns, 32K budget):
+
+| Model | AN (accumulate) | OURS (assembly) | Delta | First Fail (AN → OURS) |
+|-------|-----------------|-----------------|-------|------------------------|
+| qwen3-4b (3.6B dense) | 70.4% | 98.4% | +28.0% | turn 14 → turn 60 |
+| DeepSeek V3.2 (671B MoE) | 70.8% | 92.8% | +22.0% | turn 14 → turn 41 |
+
+Both accumulate baselines begin failing at turn 14 -- the exact point where the 32K budget fills. Assembly delays first failure by 27-46 turns and maintains 92-98% adherence at turn 100.
+
+**In progress:**
+- gpt-5.4-mini AN + OURS (closed-source model validation)
+- AC (LLM compaction), AX (LLMLingua compression), RS (RAG retrieval) baselines
+- S2 (canary survival), S3 (decision consistency), S4 (task isolation), S5 (deep backtracking)
+- Attention share analysis (direct extraction on qwen3-4b, logprobs on gpt-5.4-mini)
+- Multi-run variance confirmation
 
 ## Repository Structure
 
 ```
-paper-spec.md      # Full design spec
 README.md          # This file
+paper-spec.md      # Full paper design specification
 LICENSE            # CC BY 4.0
 ```
+
+Evaluation framework and ycp source code will be released upon paper completion.
 
 ## License
 
